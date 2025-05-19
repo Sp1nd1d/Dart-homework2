@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../models/article.dart';
-import '../services/api_service.dart';
-import '../providers/theme_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/models/article.dart';
+import '../../domain/providers/api_provider.dart';
+import '../../domain/providers/theme_provider.dart';
+import '../widgets/article_card.dart';
+import 'favorites_screen.dart';
 import 'detail_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  final ApiService _apiService = ApiService(); // Сервис для загрузки новостей
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   final ScrollController _scrollController =
       ScrollController(); // Контроллер прокрутки
-  final List<Article> _articles = []; // Список статей
+  final List<Article> _articles = []; // Список новостей
 
   int _currentPage = 1; // Текущая страница пагинации
   bool _isLoading = false; // Флаг загрузки
@@ -47,14 +48,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Загрузка новых статей с API
+  // Загрузка новостей через ApiService
   void _fetchArticles() async {
     setState(() => _isLoading = true);
     try {
-      final newArticles = await _apiService.fetchArticles(
-        page: _currentPage,
-        pageSize: 20,
-      );
+      final api = ref.read(apiProvider); // получаем сервис API из провайдера
+      final newArticles = await api.fetchArticles(page: _currentPage);
       if (newArticles.isEmpty) {
         _hasMore = false; // Больше страниц нет
       } else {
@@ -70,19 +69,23 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(
-      context,
-    ); // Получаем текущую тему
+    final theme = ref.watch(themeProvider); // Получаем текущую тему
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Новости'),
         actions: [
           IconButton(
-            icon: Icon(
-              themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-            ),
-            onPressed: () => themeProvider.toggleTheme(), // Переключение темы
+            icon: const Icon(Icons.favorite),
+            onPressed:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+                ),
+          ),
+          IconButton(
+            icon: Icon(theme ? Icons.light_mode : Icons.dark_mode),
+            onPressed: () => ref.read(themeProvider.notifier).toggle(),
           ),
         ],
       ),
@@ -105,37 +108,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       ), // Индикатор внизу
                     );
                   }
-
                   final article = _articles[index];
-                  return Card(
-                    margin: const EdgeInsets.all(8),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(10),
-                      leading: SizedBox(
-                        width: 100,
-                        child: FadeInImage.assetNetwork(
-                          placeholder: 'assets/placeholder.jpg',
-                          image: article.urlToImage,
-                          fit: BoxFit.cover,
-                          imageErrorBuilder:
-                              (context, error, stackTrace) => Image.asset(
-                                'assets/placeholder.jpg',
-                                fit: BoxFit.cover,
-                              ),
-                        ),
-                      ),
-                      title: Text(
-                        article.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(
-                        article.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      onTap: () {
-                        Navigator.push(
+                  return ArticleCard(
+                    article: article,
+                    onTap:
+                        () => Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder:
@@ -143,9 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   article: article,
                                 ), // Переход к подробностям
                           ),
-                        );
-                      },
-                    ),
+                        ),
                   );
                 },
               ),

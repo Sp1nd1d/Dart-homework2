@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../models/article.dart';
+import '../../data/models/article.dart';
 
 class DetailScreen extends StatelessWidget {
   final Article article; // Статья, переданная с главного экрана
@@ -11,7 +11,7 @@ class DetailScreen extends StatelessWidget {
   void _launchURL(BuildContext context) async {
     final uri = Uri.parse(article.url);
     if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       if (!context.mounted) return; // Проверка, что context всё ещё активен
       ScaffoldMessenger.of(context).showSnackBar(
@@ -40,7 +40,13 @@ class DetailScreen extends StatelessWidget {
         })();
 
     return Scaffold(
-      appBar: AppBar(title: Text(article.title, maxLines: 1)),
+      appBar: AppBar(
+        title: Text(
+          article.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -52,12 +58,12 @@ class DetailScreen extends StatelessWidget {
                 width: double.infinity,
                 child: FadeInImage.assetNetwork(
                   placeholder:
-                      'assets/placeholder.jpg', // заглушка до загрузки основного изображения
-                  image: article.urlToImage, // загружаемое основное изображение
+                      'assets/placeholder.jpg', // Заглушка до загрузки основного изображения
+                  image: article.urlToImage, // Загружаемое основное изображение
                   fit: BoxFit.cover,
                   imageErrorBuilder:
                       (context, error, stackTrace) => Image.asset(
-                        'assets/placeholder.jpg', // если загрузка неудачна - показывается заглушка
+                        'assets/placeholder.jpg', // Если загрузка неудачна - показывается заглушка
                         fit: BoxFit.cover,
                       ),
                 ),

@@ -12,7 +12,7 @@ dependencies:
   http: ^0.13.6 # HTTP-запросы к API
   url_launcher: ^6.1.12 # открытие ссылки на статью в браузере
   shared_preferences: ^2.2.2 # хранение состояния
-  provider: ^6.1.1 # управление состоянием экрана
+  flutter_riverpod: ^2.4.0
 
 dependency_overrides:
   shared_preferences_web: ^2.2.0
