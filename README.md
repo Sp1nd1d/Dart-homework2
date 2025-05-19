@@ -116,6 +116,6 @@ Widget test. <br />
 **Не получилось:**
 <p align="justify">
 json_serializable или freezed для модели статьи - бесконечная загрузка статей. <br />
-APK-файл и работа на Android - не работает Android Studio.
+APK-файл и работа на Android - не работает Android Studio. <br />
 Интеграционные тесты - Web devices are not supported for integration tests yet.
 </p>
